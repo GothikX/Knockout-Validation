@@ -66,7 +66,8 @@
         errorMessageClass: 'validationMessage',  // class to decorate error message
         grouping: {
             deep: false,        //by default grouping is shallow
-            observable: true    //and using observables
+            observable: true,    //and using observables
+            live: false          //react to changes to observableArrays if observable === true
         }
     };
 
@@ -171,6 +172,7 @@
                     return true;
                 }
             },
+<<<<<<< HEAD
             getOriginalElementTitle: function (element) {
                 var savedOriginalTitle = utils.getAttribute(element, 'data-orig-title'),
                     currentTitle = element.title,
@@ -178,6 +180,11 @@
                 
                 return hasSavedOriginalTitle ? 
                     savedOriginalTitle : currentTitle;
+=======
+            //created issue to solve that in ko https://github.com/SteveSanderson/knockout/issues/619
+            isObservableArray: function (obj) {
+                return ko.isObservable(obj) && !(obj.destroyAll === undefined);
+>>>>>>> delixfe/observableArrays-destroyed
             }
         };
     } ());
@@ -230,9 +237,15 @@
             //      observable: false // if true, returns a computed observable indicating if the viewModel is valid
             // }
             group: function group(obj, options) { // array of observables or viewModel
+<<<<<<< HEAD
                 options = ko.utils.extend(ko.utils.extend({}, configuration.grouping), options);
 
                 var validatables = ko.observableArray([]),
+=======
+                var options = ko.utils.extend(configuration.grouping, options),
+                validatables = ko.observableArray([]),
+                validatablesTemp = [],
+>>>>>>> delixfe/observableArrays-destroyed
                 result = null,
 
                 //anonymous, immediate function to traverse objects hierarchically
@@ -248,12 +261,22 @@
                     if (ko.isObservable(obj)) {
 
                         //make sure it is validatable object
+<<<<<<< HEAD
                         if (!obj.isValid) { obj.extend({ validatable: true }); }
                         validatables.push(obj);
+=======
+                        if (!obj.isValid) obj.extend({ validatable: true });
+                        validatablesTemp.push(obj);
+
+                        if(options.live && utils.isObservableArray(obj)) {
+                            subscribeToObservableArray(obj);
+                        }
+>>>>>>> delixfe/observableArrays-destroyed
                     }
 
                     //get list of values either from array or object but ignore non-objects
-                    if (val) {
+                    // and destroyed objects
+                    if (val && !val._destroy) {
                         if (utils.isArray(val)) {
                             objValues = val;
                         } else if (utils.isObject(val)) {
@@ -269,13 +292,31 @@
                             if (observable && !observable.nodeType) { traverse(observable, level + 1); }
                         });
                     }
+                },
+
+                observableArraySubscriptions = [],
+                clearObservableArraySubscriptions = function () {
+                    ko.utils.arrayForEach(observableArraySubscriptions, function (subscription) {
+                        subscription.dispose();
+                    });
+                    observableArraySubscriptions = [];
+                },
+                traverseAndStoreInValidatables = function() {
+                    clearObservableArraySubscriptions();
+                    validatablesTemp = [];
+                    traverse(obj);
+                    validatables(validatablesTemp);   
+                },
+                subscribeToObservableArray = function(observableArray) {
+                    observableArraySubscriptions.push(observableArray.subscribe(traverseAndStoreInValidatables));
                 };
 
                 //if using observables then traverse structure once and add observables
                 if (options.observable) {
 
-                    traverse(obj);
-
+                    traverseAndStoreInValidatables();
+                    
+                    // TODO: call clearObservableArraySubscriptions on dispose of result -> but ko.computed has no disposeCallback
                     result = ko.computed(function () {
                         var errors = [];
                         ko.utils.arrayForEach(validatables(), function (observable) {
@@ -289,9 +330,9 @@
                 } else { //if not using observables then every call to error() should traverse the structure
                     result = function () {
                         var errors = [];
-                        validatables([]); //clear validatables
+                        validatablesTemp = []; //clear validatables
                         traverse(obj); // and traverse tree again
-                        ko.utils.arrayForEach(validatables(), function (observable) {
+                        ko.utils.arrayForEach(validatablesTemp, function (observable) {
                             if (!observable.isValid()) {
                                 errors.push(observable.error);
                             }
@@ -310,7 +351,7 @@
                     // ensure we have latest changes
                     result();
 
-                    ko.utils.arrayForEach(validatables(), function (observable) {
+                    ko.utils.arrayForEach(validatablesTemp, function (observable) {
                         observable.isModified(show);
                     });
                 };
