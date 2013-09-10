@@ -172,7 +172,6 @@
                     return true;
                 }
             },
-<<<<<<< HEAD
             getOriginalElementTitle: function (element) {
                 var savedOriginalTitle = utils.getAttribute(element, 'data-orig-title'),
                     currentTitle = element.title,
@@ -180,12 +179,6 @@
                 
                 return hasSavedOriginalTitle ? 
                     savedOriginalTitle : currentTitle;
-=======
-            //created issue to solve that in ko https://github.com/SteveSanderson/knockout/issues/619
-            isObservableArray: function (obj) {
-                return ko.isObservable(obj) && !(obj.destroyAll === undefined);
->>>>>>> delixfe/observableArrays-destroyed
-            }
         };
     } ());
 
@@ -237,15 +230,9 @@
             //      observable: false // if true, returns a computed observable indicating if the viewModel is valid
             // }
             group: function group(obj, options) { // array of observables or viewModel
-<<<<<<< HEAD
-                options = ko.utils.extend(ko.utils.extend({}, configuration.grouping), options);
-
-                var validatables = ko.observableArray([]),
-=======
-                var options = ko.utils.extend(configuration.grouping, options),
+                var options = ko.utils.extend(ko.utils.extend({}, configuration.grouping), options),
                 validatables = ko.observableArray([]),
                 validatablesTemp = [],
->>>>>>> delixfe/observableArrays-destroyed
                 result = null,
 
                 //anonymous, immediate function to traverse objects hierarchically
@@ -261,17 +248,12 @@
                     if (ko.isObservable(obj)) {
 
                         //make sure it is validatable object
-<<<<<<< HEAD
                         if (!obj.isValid) { obj.extend({ validatable: true }); }
-                        validatables.push(obj);
-=======
-                        if (!obj.isValid) obj.extend({ validatable: true });
                         validatablesTemp.push(obj);
 
                         if(options.live && utils.isObservableArray(obj)) {
                             subscribeToObservableArray(obj);
                         }
->>>>>>> delixfe/observableArrays-destroyed
                     }
 
                     //get list of values either from array or object but ignore non-objects
