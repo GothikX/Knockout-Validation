@@ -60,6 +60,7 @@
         parseInputAttributes: false,    // parses the HTML5 validation attribute from a form element and adds that to the object
         writeInputAttributes: false,    // adds HTML5 input validation attributes to form elements that ko observable's are bound to
         decorateElement: false,         // false to keep backward compatibility
+        decorateElementOnModified: true,// true to keep backward compatibility
         errorClass: null,               // single class for error message and element
         errorElementClass: 'validationElement',  // class to decorate error element
         errorMessageClass: 'validationMessage',  // class to decorate error message
@@ -219,7 +220,7 @@
             configure: function (options) { exports.init(options); },
 
             // resets the config back to its original state
-            reset: function () { configuration = jQuery.extend(configuration, defaults); },
+            reset: function () { ko.utils.extend(configuration, defaults); },
 
             // recursivly walks a viewModel and creates an object that
             // provides validation information for the entire viewModel
@@ -828,7 +829,7 @@
             var cssSettingsAccessor = function () {
                 var css = {};
 
-                var shouldShow = (isModified ? !isValid : false);
+                var shouldShow = ((!config.decorateElementOnModified || isModified) ? !isValid : false);
 
                 if (!config.decorateElement) { shouldShow = false; }
 
@@ -959,7 +960,7 @@
             observable.clearError = function () {
             	observable.error(null);
 				observable.__valid__(true);
-            }
+            };
 
             //subscribe to changes in the observable
             var h_change = observable.subscribe(function () {
