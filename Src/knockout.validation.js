@@ -179,6 +179,10 @@
                 
                 return hasSavedOriginalTitle ? 
                     savedOriginalTitle : currentTitle;
+            },
+            isObservableArray: function(object) {
+                return ko.isObservable(object) && object.destroyAll;
+            }
         };
     } ());
 
